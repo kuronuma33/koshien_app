@@ -1,10 +1,10 @@
-const CACHE_NAME = 'koshien-app-v1.0.0';
+const CACHE_NAME = 'koshien-app-v1.0.2';  // バージョンアップ
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
+  '/koshien_app/',           // 絶対パスに変更
+  '/koshien_app/index.html',
+  '/koshien_app/manifest.json',
+  '/koshien_app/icon-192.png',
+  '/koshien_app/icon-512.png'
 ];
 
 // Service Workerのインストール
