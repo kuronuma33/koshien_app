@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>甲子園への道のり</title>
+    <title>叶夢~甲子園への道のり~</title>
     <style>
         * {
             margin: 0;
@@ -689,7 +689,7 @@
                 </button>
                 
                 <div class="daily-limit-indicator">
-                    素振り入力: <span id="inputCount">0</span>/3回 | 体力消費: ♥1
+                    体力: <span id="healthText">♥♥♥</span> | 柔軟で1ハート回復
                 </div>
             </div>
             
@@ -787,11 +787,6 @@
                 return;
             }
             
-            if (gameData.swingInputCount >= 3) {
-                showAchievement("今日の素振りは3回まで！");
-                return;
-            }
-            
             if (gameData.health <= 0) {
                 showAchievement("体力が不足しています！\n柔軟体操で回復してください。");
                 return;
@@ -847,10 +842,10 @@
                 return;
             }
             
-            gameData.health = Math.min(3, gameData.health + 1);
+            gameData.health = Math.min(3, gameData.health + 1); // 1回で1ハート回復
             updateDisplay();
             saveGameData();
-            showAchievement("柔軟体操完了！\n体力が回復しました！");
+            showAchievement("柔軟体操完了！\n体力が1回復しました！");
         }
         
         // 表示更新
@@ -858,7 +853,6 @@
             // 基本情報
             document.getElementById('totalSteps').textContent = gameData.totalSteps.toLocaleString();
             document.getElementById('playerLevel').textContent = gameData.currentLevel;
-            document.getElementById('inputCount').textContent = gameData.swingInputCount;
             document.getElementById('swingCount').textContent = gameData.swingCount;
             
             // 今日の記録
@@ -876,18 +870,21 @@
                 }
             });
             
+            // 体力テキスト更新
+            let healthText = '';
+            for (let i = 0; i < 3; i++) {
+                healthText += i < gameData.health ? '♥' : '♡';
+            }
+            document.getElementById('healthText').textContent = healthText;
+            
             // 次のマイルストーン
             updateNextTarget();
             
             // ボタンの状態
             const swingBtn = document.getElementById('swingBtn');
-            if (gameData.swingInputCount >= 3 || gameData.health <= 0) {
+            if (gameData.health <= 0) {
                 swingBtn.disabled = true;
-                if (gameData.swingInputCount >= 3) {
-                    swingBtn.textContent = '✅ 本日完了';
-                } else {
-                    swingBtn.textContent = '😰 体力不足';
-                }
+                swingBtn.textContent = '😰 体力不足';
             } else {
                 swingBtn.disabled = false;
                 swingBtn.textContent = '⚾ 素振り実行！';
@@ -1158,7 +1155,7 @@
         function resetDailyUI() {
             document.getElementById('boostIndicator').classList.remove('active');
             document.getElementById('dashBtn').disabled = false;
-            document.getElementById('dashBtn').textContent = '🏃‍♂️ ダッシュ';
+            document.getElementById('dashBtn').textContent = '🏃‍♂️ しらさぎ練習';
         }
         
         // 自動保存の設定
