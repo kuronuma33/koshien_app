@@ -2,7 +2,7 @@
   "name": "叶夢〜甲子園への道のり〜",
   "short_name": "甲子園アプリ",
   "description": "素振り練習で甲子園を目指す野球育成ゲームアプリ",
-  "start_url": "./index.html",
+  "start_url": "https://kuronum33.github.io/koshien_app/index.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#1976D2",
