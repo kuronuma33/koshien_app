@@ -2,57 +2,66 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>甲子園への道のり</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #4CAF50, #2E7D32);
-            min-height: 100vh;
-            padding: 10px;
-        }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: linear-gradient(180deg, #1976D2 0%, #42A5F5 100%);
+            height: 100vh;
+            height: 100dvh;
             overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #1976D2, #0D47A1);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 2em;
-            margin-bottom: 5px;
-        }
-        
-        .map-section {
-            padding: 20px;
-            background: #f0f8ff;
-        }
-        
-        .route-map {
+            position: fixed;
             width: 100%;
-            height: 200px;
-            background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 50%, #90caf9 100%);
-            border-radius: 15px;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+            max-width: 400px;
+            margin: 0 auto;
+            background: linear-gradient(180deg, #E3F2FD 0%, #BBDEFB 100%);
             position: relative;
-            border: 2px solid #1976D2;
-            margin-bottom: 20px;
+        }
+        
+        /* 上部: 甲子園マップエリア */
+        .map-area {
+            height: 28vh;
+            height: 28dvh;
+            background: linear-gradient(135deg, #2E7D32, #4CAF50);
+            position: relative;
             overflow: hidden;
+            border-bottom: 3px solid #1B5E20;
+            flex-shrink: 0;
+        }
+        
+        .map-header {
+            text-align: center;
+            color: white;
+            padding: 6px 0;
+            background: rgba(0,0,0,0.2);
+            font-weight: bold;
+            font-size: 13px;
+        }
+        
+        .route-track {
+            height: 50px;
+            background: rgba(255,255,255,0.3);
+            margin: 8px 10px;
+            border-radius: 25px;
+            position: relative;
+            border: 2px solid rgba(255,255,255,0.5);
         }
         
         .route-line {
@@ -61,206 +70,353 @@
             left: 10px;
             right: 10px;
             height: 4px;
-            background: #666;
+            background: rgba(255,255,255,0.6);
             transform: translateY(-50%);
             border-radius: 2px;
         }
         
-        .milestone {
+        .milestone-point {
             position: absolute;
             top: 50%;
-            transform: translateY(-50%);
-            text-align: center;
-            font-size: 12px;
-            color: #333;
-        }
-        
-        .milestone-marker {
             width: 12px;
             height: 12px;
-            background: #666;
+            background: #FFF;
             border-radius: 50%;
-            margin: 0 auto 5px;
+            transform: translateY(-50%);
+            border: 2px solid #2E7D32;
         }
         
-        .current-position {
+        .milestone-passed {
+            background: #4CAF50;
+            box-shadow: 0 0 8px #4CAF50;
+        }
+        
+        .player-icon {
             position: absolute;
             top: 50%;
-            transform: translate(-50%, -50%);
             font-size: 24px;
-            z-index: 10;
+            transform: translate(-50%, -50%);
+            animation: bounce 2s infinite;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
             transition: left 0.5s ease;
         }
         
+        @keyframes bounce {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+        
         .progress-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            color: white;
+            font-size: 11px;
+            padding: 6px;
+            background: rgba(0,0,0,0.2);
         }
         
-        .info-card {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
+        .progress-stat {
             text-align: center;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         }
         
-        .info-number {
-            font-size: 1.8em;
+        .progress-number {
             font-weight: bold;
-            color: #1976D2;
-            margin-bottom: 5px;
+            font-size: 14px;
+            display: block;
         }
         
-        .info-label {
-            color: #666;
-            font-size: 0.9em;
+        /* 中部: キャラクターステータス */
+        .character-area {
+            height: 32vh;
+            height: 32dvh;
+            background: linear-gradient(135deg, #FFFFFF, #F5F5F5);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-shrink: 0;
         }
         
-        .stats-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            padding: 20px;
+        .character-card {
+            background: linear-gradient(135deg, #FFFFFF, #F8F9FA);
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(46, 125, 50, 0.2);
+            padding: 12px;
+            border: 2px solid #E8F5E8;
+            position: relative;
+            overflow: hidden;
         }
         
-        .training-panel, .health-panel {
-            background: #f8f9fa;
+        .character-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(76,175,80,0.1), transparent);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .character-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .level-badge {
+            background: linear-gradient(135deg, #FF5722, #D32F2F);
+            color: white;
+            padding: 6px 12px;
             border-radius: 15px;
-            padding: 20px;
-        }
-        
-        .panel-title {
-            font-size: 1.3em;
             font-weight: bold;
-            color: #333;
-            margin-bottom: 15px;
-            text-align: center;
+            font-size: 16px;
+            box-shadow: 0 3px 6px rgba(211, 47, 47, 0.3);
         }
         
         .health-display {
             display: flex;
-            justify-content: center;
             align-items: center;
-            margin: 20px 0;
+            gap: 4px;
         }
         
         .heart-icon {
-            font-size: 2em;
-            margin: 0 5px;
-            transition: all 0.3s ease;
+            font-size: 20px;
+            animation: heartbeat 1.5s ease-in-out infinite;
         }
         
         .heart-full {
-            color: #e91e63;
+            color: #D32F2F;
         }
         
         .heart-empty {
-            color: #ccc;
+            color: #E0E0E0;
         }
         
-        .boost-display {
-            text-align: center;
-            margin: 15px 0;
-        }
-        
-        .boost-icon {
-            font-size: 2em;
-            color: #ff9800;
-            animation: pulse 1s infinite;
-        }
-        
-        @keyframes pulse {
+        @keyframes heartbeat {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
         }
         
-        .input-section {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 10px 0;
-            border: 2px solid #e0e0e0;
-        }
-        
-        .input-row {
+        .status-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 10px 0;
         }
         
-        .input-label {
+        .boost-indicator {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
             font-weight: bold;
-            color: #333;
+            animation: glow 1s infinite alternate;
+            display: none;
         }
         
-        .number-input {
-            width: 80px;
-            height: 40px;
-            border: 2px solid #1976D2;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 1.1em;
-            font-weight: bold;
+        .boost-indicator.active {
+            display: block;
         }
         
-        .action-btn {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
+        .chart-btn {
+            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
             color: white;
             border: none;
-            border-radius: 10px;
-            padding: 12px 20px;
-            font-size: 1em;
+            border-radius: 12px;
+            padding: 6px 12px;
+            font-size: 12px;
             font-weight: bold;
             cursor: pointer;
+            box-shadow: 0 2px 4px rgba(156, 39, 176, 0.3);
+            transition: all 0.2s ease;
+        }
+        
+        .chart-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(156, 39, 176, 0.3);
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 5px #FF9800; }
+            to { box-shadow: 0 0 15px #FF9800, 0 0 20px #FF9800; }
+        }
+        
+        .daily-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .stat-mini {
+            text-align: center;
+            background: rgba(46, 125, 50, 0.1);
+            padding: 6px;
+            border-radius: 8px;
+            border: 1px solid rgba(46, 125, 50, 0.2);
+        }
+        
+        .stat-mini-number {
+            font-weight: bold;
+            color: #2E7D32;
+            font-size: 14px;
+            display: block;
+        }
+        
+        .stat-mini-label {
+            font-size: 9px;
+            color: #666;
+        }
+        
+        /* 下部: アクションエリア */
+        .action-area {
+            height: 40vh;
+            height: 40dvh;
+            background: linear-gradient(135deg, #F5F5F5, #E0E0E0);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        
+        .swing-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .swing-input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+        
+        .swing-label {
+            font-weight: bold;
+            color: #2E7D32;
+            flex: 1;
+            font-size: 14px;
+        }
+        
+        .swing-counter {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .counter-btn {
+            width: 35px;
+            height: 35px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2E7D32, #4CAF50);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(46, 125, 50, 0.3);
+            transition: all 0.2s ease;
+        }
+        
+        .counter-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(46, 125, 50, 0.3);
+        }
+        
+        .counter-display {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2E7D32;
+            min-width: 45px;
+            text-align: center;
+            background: linear-gradient(135deg, #E8F5E8, #F1F8E9);
+            padding: 6px;
+            border-radius: 8px;
+            border: 2px solid #C8E6C9;
+        }
+        
+        .main-action-btn {
+            background: linear-gradient(135deg, #D32F2F, #F44336);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(211, 47, 47, 0.4);
             transition: all 0.3s ease;
-            margin: 5px;
+            position: relative;
+            overflow: hidden;
         }
         
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(76,175,80,0.3);
+        .main-action-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 8px rgba(211, 47, 47, 0.4);
         }
         
-        .action-btn:disabled {
-            background: #ccc;
+        .main-action-btn:disabled {
+            background: #BDBDBD;
             cursor: not-allowed;
-            transform: none;
             box-shadow: none;
         }
         
-        .dash-btn {
-            background: linear-gradient(135deg, #FF5722, #D84315);
+        .sub-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
         }
         
-        .dash-btn:hover {
-            box-shadow: 0 5px 15px rgba(255,87,34,0.3);
+        .sub-action-btn {
+            background: linear-gradient(135deg, #1976D2, #2196F3);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(25, 118, 210, 0.3);
+            transition: all 0.2s ease;
         }
         
-        .flexibility-btn {
-            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+        .sub-action-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(25, 118, 210, 0.3);
         }
         
-        .flexibility-btn:hover {
-            box-shadow: 0 5px 15px rgba(156,39,176,0.3);
+        .sub-action-btn:disabled {
+            background: #BDBDBD;
+            cursor: not-allowed;
+            box-shadow: none;
         }
         
-        .chart-section {
-            padding: 20px;
-            background: #f5f5f5;
+        .daily-limit-indicator {
+            text-align: center;
+            background: rgba(25, 118, 210, 0.1);
+            color: #1976D2;
+            padding: 6px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            border: 1px solid rgba(25, 118, 210, 0.2);
         }
         
-        .chart-container {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            height: 300px;
-            position: relative;
-        }
-        
+        /* 成果ポップアップ */
         .achievement-popup {
             position: fixed;
             top: 50%;
@@ -268,286 +424,308 @@
             transform: translate(-50%, -50%) scale(0);
             background: linear-gradient(135deg, #FFD700, #FFA000);
             color: #333;
-            padding: 30px;
+            padding: 20px;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             text-align: center;
             z-index: 1000;
             transition: transform 0.3s ease;
+            max-width: 280px;
         }
         
         .achievement-popup.show {
             transform: translate(-50%, -50%) scale(1);
         }
         
-        .warning {
-            background: #ffebee;
-            color: #c62828;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
-            text-align: center;
+        .achievement-popup h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        /* チャートモーダル */
+        .chart-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .chart-modal.show {
+            display: flex;
+        }
+        
+        .chart-content {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            width: 100%;
+            max-width: 350px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #E0E0E0;
+            padding-bottom: 10px;
+        }
+        
+        .chart-title {
+            font-size: 18px;
             font-weight: bold;
+            color: #2E7D32;
         }
         
-        .reset-section {
-            padding: 20px;
-            background: #f5f5f5;
-            border-top: 1px solid #ddd;
-        }
-        
-        .reset-btn {
-            background: linear-gradient(135deg, #f44336, #d32f2f);
+        .close-btn {
+            background: #f44336;
             color: white;
             border: none;
-            border-radius: 10px;
-            padding: 10px 20px;
-            font-size: 0.9em;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 16px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            background: #f8f9fa;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .bar-chart {
+            display: flex;
+            align-items: end;
+            justify-content: space-around;
+            height: 250px;
+            padding: 20px 10px;
+            gap: 8px;
+        }
+        
+        .bar-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 40px;
+        }
+        
+        .bar {
+            width: 100%;
+            background: linear-gradient(135deg, #2E7D32, #4CAF50);
+            border-radius: 4px 4px 0 0;
             transition: all 0.3s ease;
+            position: relative;
+            min-height: 10px;
         }
         
-        .reset-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(244,67,54,0.3);
+        .bar:hover {
+            background: linear-gradient(135deg, #1B5E20, #2E7D32);
+            transform: scale(1.05);
         }
         
-        .save-info {
-            background: #e8f5e8;
-            color: #2e7d2e;
-            padding: 8px;
-            border-radius: 6px;
-            margin: 10px 0;
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            font-weight: bold;
+            color: #2E7D32;
+            background: white;
+            padding: 2px 4px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .bar:hover .bar-value {
+            opacity: 1;
+        }
+        
+        .bar-label {
+            font-size: 9px;
+            color: #666;
+            margin-top: 5px;
             text-align: center;
-            font-size: 0.8em;
+            transform: rotate(-45deg);
+            transform-origin: center;
+            white-space: nowrap;
         }
         
-        .save-info {
-            background: #e8f5e8;
-            color: #2e7d2e;
-            padding: 8px;
-            border-radius: 6px;
-            margin: 10px 0;
-            text-align: center;
-            font-size: 0.8em;
-        }
-        
-        .reset-section {
-            padding: 20px;
-            background: #f5f5f5;
-            border-top: 1px solid #ddd;
-        }
-        
-        .reset-btn {
-            background: linear-gradient(135deg, #f44336, #d32f2f);
+        /* 保存インジケーター */
+        .save-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #4CAF50;
             color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 10px 20px;
-            font-size: 0.9em;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 1000;
+            animation: saveSlideIn 2s ease-in-out;
         }
         
-        .reset-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(244,67,54,0.3);
+        @keyframes saveSlideIn {
+            0% { opacity: 0; transform: translateX(100%); }
+            20% { opacity: 1; transform: translateX(0); }
+            80% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 0; transform: translateX(100%); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>⚾ 甲子園への道のり ⚾</h1>
-            <p>葛飾区鎌倉 → 甲子園球場</p>
-            <p id="currentDate"></p>
-        </div>
-        
-        <div class="map-section">
-            <div class="route-map">
+    <div class="game-container">
+        <!-- 上部: 甲子園マップエリア -->
+        <div class="map-area">
+            <div class="map-header">
+                ⚾ 甲子園への道のり ⚾
+            </div>
+            <div class="route-track">
                 <div class="route-line"></div>
-                
-                <!-- 出発地点 -->
-                <div class="milestone" style="left: 0%;">
-                    <div class="milestone-marker"></div>
-                    <div>葛飾区<br>鎌倉</div>
-                </div>
-                
-                <!-- 中間地点 -->
-                <div class="milestone" style="left: 12.5%;">
-                    <div class="milestone-marker"></div>
-                    <div>神奈川県</div>
-                </div>
-                
-                <div class="milestone" style="left: 25%;">
-                    <div class="milestone-marker"></div>
-                    <div>静岡県</div>
-                </div>
-                
-                <div class="milestone" style="left: 37.5%;">
-                    <div class="milestone-marker"></div>
-                    <div>愛知県</div>
-                </div>
-                
-                <div class="milestone" style="left: 50%;">
-                    <div class="milestone-marker"></div>
-                    <div>岐阜県</div>
-                </div>
-                
-                <div class="milestone" style="left: 62.5%;">
-                    <div class="milestone-marker"></div>
-                    <div>滋賀県</div>
-                </div>
-                
-                <div class="milestone" style="left: 75%;">
-                    <div class="milestone-marker"></div>
-                    <div>京都府</div>
-                </div>
-                
-                <div class="milestone" style="left: 87.5%;">
-                    <div class="milestone-marker"></div>
-                    <div>大阪府</div>
-                </div>
-                
-                <!-- ゴール地点 -->
-                <div class="milestone" style="left: 100%;">
-                    <div class="milestone-marker" style="background: #4CAF50;"></div>
-                    <div>甲子園<br>球場</div>
-                </div>
-                
-                <!-- 現在位置 -->
-                <div class="current-position" id="currentPosition" style="left: 0%;">🏃‍♂️</div>
+                <div class="milestone-point milestone-passed" style="left: 12.5%;"></div>
+                <div class="milestone-point" style="left: 25%;"></div>
+                <div class="milestone-point" style="left: 37.5%;"></div>
+                <div class="milestone-point" style="left: 50%;"></div>
+                <div class="milestone-point" style="left: 62.5%;"></div>
+                <div class="milestone-point" style="left: 75%;"></div>
+                <div class="milestone-point" style="left: 87.5%;"></div>
+                <div class="player-icon" id="playerIcon" style="left: 15%;">🏃‍♂️</div>
             </div>
-            
             <div class="progress-info">
-                <div class="info-card">
-                    <div class="info-number" id="totalSteps">0</div>
-                    <div class="info-label">総歩数</div>
+                <div class="progress-stat">
+                    <span class="progress-number" id="totalSteps">0</span>
+                    <span>総歩数</span>
                 </div>
-                <div class="info-card">
-                    <div class="info-number" id="distanceTraveled">0.0</div>
-                    <div class="info-label">進んだ距離(km)</div>
+                <div class="progress-stat">
+                    <span class="progress-number" id="nextTarget">神奈川県</span>
+                    <span>次の目標</span>
                 </div>
-                <div class="info-card">
-                    <div class="info-number" id="nextMilestone">神奈川県まで</div>
-                    <div class="info-label" id="stepsToNext">120,000歩</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-number" id="stepsToGoal">1,000,000</div>
-                    <div class="info-label">ゴールまで歩数</div>
+                <div class="progress-stat">
+                    <span class="progress-number" id="remaining">961,538</span>
+                    <span>残り歩数</span>
                 </div>
             </div>
         </div>
         
-        <div class="stats-section">
-            <div class="training-panel">
-                <div class="panel-title">🏋️‍♂️ 今日のトレーニング</div>
-                
-                <div class="health-display">
-                    <span>体力: </span>
-                    <div id="healthHearts">
-                        <span class="heart-icon heart-full">♥</span>
-                        <span class="heart-icon heart-full">♥</span>
-                        <span class="heart-icon heart-full">♥</span>
+        <!-- 中部: キャラクターステータス -->
+        <div class="character-area">
+            <div class="character-card">
+                <div class="character-header">
+                    <div class="level-badge">Lv.<span id="playerLevel">1</span></div>
+                    <div class="health-display">
+                        <span style="font-size: 14px; font-weight: bold; color: #666;">体力:</span>
+                        <div id="healthHearts">
+                            <span class="heart-icon heart-full">♥</span>
+                            <span class="heart-icon heart-full">♥</span>
+                            <span class="heart-icon heart-full">♥</span>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="boost-display" id="boostDisplay" style="display: none;">
-                    <div class="boost-icon">🚀</div>
-                    <div>ブースト効果発動中！<br>素振り1回 = 15歩</div>
-                </div>
-                
-                <div class="daily-limit">
-                    素振り入力回数: <span id="swingInputCount">0</span>/3回
-                </div>
-                
-                <div class="input-section">
-                    <div class="input-row">
-                        <span class="input-label">素振り回数:</span>
-                        <input type="number" id="swingCount" class="number-input" min="0" value="0">
+                <div class="status-row">
+                    <div style="color: #666; font-size: 14px;">
+                        📅 <span id="currentDate">2025年8月10日</span>
                     </div>
-                    <button class="action-btn" id="addSwingBtn" onclick="addSwings()">素振り実行</button>
+                    <button class="chart-btn" onclick="showChart()">📊 グラフ</button>
                 </div>
                 
-                <div class="input-section">
-                    <div class="input-row">
-                        <span class="input-label">ダッシュ (10m×5本):</span>
-                        <button class="action-btn dash-btn" id="dashBtn" onclick="performDash()">実行</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin: 6px 0;">
+                    <div class="boost-indicator" id="boostIndicator">
+                        🚀 ブースト効果中！
                     </div>
                 </div>
                 
-                <div class="input-section">
-                    <div class="input-row">
-                        <span class="input-label">柔軟体操:</span>
-                        <button class="action-btn flexibility-btn" id="flexibilityBtn" onclick="performFlexibility()">実行</button>
+                <div class="daily-stats">
+                    <div class="stat-mini">
+                        <span class="stat-mini-number" id="todaySwings">0</span>
+                        <span class="stat-mini-label">今日の素振り</span>
                     </div>
-                </div>
-                
-                <div id="warningMessage" class="warning" style="display: none;">
-                    体力が不足しています！柔軟体操で体力を回復してください。
-                </div>
-                
-                <div class="save-info">
-                    🔗 URLに自動保存中<br>
-                    <small>ブックマーク推奨！</small>
-                </div>
-            </div>
-            
-            <div class="health-panel">
-                <div class="panel-title">📊 今日の記録</div>
-                <div class="info-card">
-                    <div class="info-number" id="todaySwings">0</div>
-                    <div class="info-label">今日の素振り回数</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-number" id="todaySteps">0</div>
-                    <div class="info-label">今日の歩数</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-number" id="todayDistance">0.0</div>
-                    <div class="info-label">今日の進距離(km)</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-number" id="consecutiveDays">0</div>
-                    <div class="info-label">連続練習日数</div>
+                    <div class="stat-mini">
+                        <span class="stat-mini-number" id="todaySteps">0</span>
+                        <span class="stat-mini-label">今日の歩数</span>
+                    </div>
+                    <div class="stat-mini">
+                        <span class="stat-mini-number" id="consecutiveDays">0</span>
+                        <span class="stat-mini-label">連続日数</span>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <div class="chart-section">
-            <div class="panel-title">📈 過去の実績</div>
-            <div class="chart-container">
-                <canvas id="progressChart" width="800" height="260"></canvas>
-            </div>
-        </div>
-        
-        <div class="reset-section">
-            <div class="panel-title">⚙️ 設定・データ管理</div>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 15px;">
-                <button class="action-btn" onclick="exportGameData()">📤 データ書き出し</button>
-                <div>
-                    <input type="file" id="importFile" accept=".json" onchange="importGameData(event)" style="display: none;">
-                    <button class="action-btn" onclick="document.getElementById('importFile').click()">📥 データ読み込み</button>
+        <!-- 下部: アクションエリア -->
+        <div class="action-area">
+            <div class="swing-section">
+                <div class="swing-input-row">
+                    <div class="swing-label">⚾ 素振り回数</div>
+                    <div class="swing-counter">
+                        <button class="counter-btn" onclick="changeCount(-10)">-</button>
+                        <div class="counter-display" id="swingCount">50</div>
+                        <button class="counter-btn" onclick="changeCount(10)">+</button>
+                    </div>
                 </div>
-                <button class="reset-btn" onclick="resetAllData()">🗑️ 全データリセット</button>
+                
+                <button class="main-action-btn" id="swingBtn" onclick="executeSwing()">
+                    ⚾ 素振り実行！
+                </button>
+                
+                <div class="daily-limit-indicator">
+                    素振り入力: <span id="inputCount">0</span>/3回 | 体力消費: ♥1
+                </div>
             </div>
             
-            <div class="save-info">
-                🔗 データはURLに自動保存されます<br>
-                <small>ブックマークすればデータ復元可能！</small>
+            <div class="sub-actions">
+                <button class="sub-action-btn" id="dashBtn" onclick="executeDash()">
+                    🏃‍♂️ ダッシュ
+                </button>
+                <button class="sub-action-btn" id="flexBtn" onclick="executeFlexibility()">
+                    🧘‍♂️ 柔軟体操
+                </button>
             </div>
-            
-            <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
-                ※ローカルファイルでも確実にデータが保存されます<br>
-                ※万一のために「データ書き出し」でバックアップをお勧めします
-            </p>
         </div>
     </div>
     
+    <!-- 成果ポップアップ -->
     <div class="achievement-popup" id="achievementPopup">
         <h2>🎉 素晴らしい！ 🎉</h2>
         <p id="achievementText"></p>
+    </div>
+    
+    <!-- チャートモーダル -->
+    <div class="chart-modal" id="chartModal">
+        <div class="chart-content">
+            <div class="chart-header">
+                <div class="chart-title">📊 素振り回数の推移</div>
+                <button class="close-btn" onclick="hideChart()">×</button>
+            </div>
+            <div class="chart-container">
+                <div class="bar-chart" id="barChart">
+                    <!-- 動的に生成 -->
+                </div>
+            </div>
+            <div style="margin-top: 15px; text-align: center; color: #666; font-size: 12px;">
+                過去7日間の素振り回数
+            </div>
+        </div>
     </div>
     
     <script>
@@ -555,23 +733,25 @@
         let gameData = {
             totalSteps: 0,
             totalSwings: 0,
-            health: 3, // 最大3
+            health: 3,
             hasBoost: false,
-            swingInputCount: 0, // 今日の素振り入力回数
-            lastDate: null, // 最後にプレイした日
+            swingInputCount: 0,
+            lastDate: null,
             consecutiveDays: 0,
+            currentLevel: 1,
             todayData: {
                 swings: 0,
                 steps: 0,
                 distance: 0
             },
-            history: []
+            swingCount: 50,
+            dailyHistory: []
         };
         
         // 目標設定
-        const TOTAL_DISTANCE_KM = 500; // 葛飾区から甲子園までの概算距離
-        const STEP_DISTANCE_M = 0.52; // 1歩の距離（メートル）
-        const TOTAL_STEPS = Math.ceil(TOTAL_DISTANCE_KM * 1000 / STEP_DISTANCE_M); // 約96万歩
+        const TOTAL_DISTANCE_KM = 500;
+        const STEP_DISTANCE_M = 0.52;
+        const TOTAL_STEPS = Math.ceil(TOTAL_DISTANCE_KM * 1000 / STEP_DISTANCE_M);
         
         // マイルストーン設定
         const milestones = [
@@ -585,23 +765,278 @@
             { name: "甲子園球場", steps: TOTAL_STEPS }
         ];
         
-        // データ保存・読み込み機能（ローカルファイル対応）
+        // 日付表示
+        function updateDate() {
+            const today = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').textContent = today.toLocaleDateString('ja-JP', options);
+        }
+        
+        // カウント変更
+        function changeCount(change) {
+            gameData.swingCount = Math.max(0, gameData.swingCount + change);
+            document.getElementById('swingCount').textContent = gameData.swingCount;
+        }
+        
+        // 素振り実行
+        function executeSwing() {
+            const swingCount = gameData.swingCount;
+            
+            if (swingCount <= 0) {
+                showAchievement("素振り回数を設定してください！");
+                return;
+            }
+            
+            if (gameData.swingInputCount >= 3) {
+                showAchievement("今日の素振りは3回まで！");
+                return;
+            }
+            
+            if (gameData.health <= 0) {
+                showAchievement("体力が不足しています！\n柔軟体操で回復してください。");
+                return;
+            }
+            
+            // 体力消費
+            gameData.health--;
+            gameData.swingInputCount++;
+            
+            // 歩数計算（ブースト効果適用）
+            const stepsPerSwing = gameData.hasBoost ? 15 : 10;
+            const stepsGained = swingCount * stepsPerSwing;
+            
+            // データ更新
+            gameData.totalSteps += stepsGained;
+            gameData.totalSwings += swingCount;
+            gameData.todayData.swings += swingCount;
+            gameData.todayData.steps += stepsGained;
+            
+            // 入力リセット
+            gameData.swingCount = 0;
+            
+            // 表示更新
+            updateDisplay();
+            updateMap();
+            saveGameData();
+            
+            // 成果表示
+            showAchievement(`素振り ${swingCount}回 完了！\n${stepsGained}歩前進しました！`);
+            
+            // レベルアップチェック
+            checkLevelUp();
+        }
+        
+        // ダッシュ実行
+        function executeDash() {
+            if (gameData.hasBoost) {
+                showAchievement("今日はすでにダッシュ済み！");
+                return;
+            }
+            
+            gameData.hasBoost = true;
+            document.getElementById('boostIndicator').classList.add('active');
+            document.getElementById('dashBtn').disabled = true;
+            document.getElementById('dashBtn').textContent = '✅ 完了';
+            
+        }
+        
+        // 柔軟実行
+        function executeFlexibility() {
+            if (gameData.health >= 3) {
+                showAchievement("体力は最大です！");
+                return;
+            }
+            
+            gameData.health = Math.min(3, gameData.health + 1);
+            updateDisplay();
+            saveGameData();
+            showAchievement("柔軟体操完了！\n体力が回復しました！");
+        }
+        
+        // 表示更新
+        function updateDisplay() {
+            // 基本情報
+            document.getElementById('totalSteps').textContent = gameData.totalSteps.toLocaleString();
+            document.getElementById('playerLevel').textContent = gameData.currentLevel;
+            document.getElementById('inputCount').textContent = gameData.swingInputCount;
+            document.getElementById('swingCount').textContent = gameData.swingCount;
+            
+            // 今日の記録
+            document.getElementById('todaySwings').textContent = gameData.todayData.swings;
+            document.getElementById('todaySteps').textContent = gameData.todayData.steps;
+            document.getElementById('consecutiveDays').textContent = gameData.consecutiveDays;
+            
+            // 体力表示
+            const hearts = document.querySelectorAll('.heart-icon');
+            hearts.forEach((heart, index) => {
+                if (index < gameData.health) {
+                    heart.className = 'heart-icon heart-full';
+                } else {
+                    heart.className = 'heart-icon heart-empty';
+                }
+            });
+            
+            // 次のマイルストーン
+            updateNextTarget();
+            
+            // ボタンの状態
+            const swingBtn = document.getElementById('swingBtn');
+            if (gameData.swingInputCount >= 3 || gameData.health <= 0) {
+                swingBtn.disabled = true;
+                if (gameData.swingInputCount >= 3) {
+                    swingBtn.textContent = '✅ 本日完了';
+                } else {
+                    swingBtn.textContent = '😰 体力不足';
+                }
+            } else {
+                swingBtn.disabled = false;
+                swingBtn.textContent = '⚾ 素振り実行！';
+            }
+        }
+        
+        // 次のターゲット更新
+        function updateNextTarget() {
+            const nextMilestone = milestones.find(m => m.steps > gameData.totalSteps);
+            if (nextMilestone) {
+                const stepsToNext = nextMilestone.steps - gameData.totalSteps;
+                document.getElementById('nextTarget').textContent = nextMilestone.name;
+                document.getElementById('remaining').textContent = stepsToNext.toLocaleString();
+            } else {
+                document.getElementById('nextTarget').textContent = '🎉 到達！';
+                document.getElementById('remaining').textContent = '0';
+            }
+        }
+        
+        // 地図更新
+        function updateMap() {
+            const progress = Math.min(100, (gameData.totalSteps / TOTAL_STEPS) * 100);
+            document.getElementById('playerIcon').style.left = Math.max(5, progress) + '%';
+        }
+        
+        // レベルアップチェック
+        function checkLevelUp() {
+            const newLevel = Math.floor(gameData.totalSteps / 1000) + 1;
+            if (newLevel > gameData.currentLevel) {
+                gameData.currentLevel = newLevel;
+                showAchievement(`🎉 レベルアップ！ 🎉\nレベル ${newLevel} になりました！`);
+                updateDisplay();
+            }
+        }
+        
+        // 成果表示
+        function showAchievement(text) {
+            const popup = document.getElementById('achievementPopup');
+            document.getElementById('achievementText').textContent = text;
+            popup.classList.add('show');
+            
+            setTimeout(() => {
+                popup.classList.remove('show');
+            }, 3000);
+        }
+        
+        // チャート表示
+        function showChart() {
+            const modal = document.getElementById('chartModal');
+            const barChart = document.getElementById('barChart');
+            
+            // チャートをクリア
+            barChart.innerHTML = '';
+            
+            // 最新7日分のデータを取得
+            let recentData = gameData.dailyHistory.slice(-7);
+            
+            // データが少ない場合はサンプルデータを追加
+            if (recentData.length < 7) {
+                const today = new Date();
+                const sampleData = [];
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    const existingData = recentData.find(d => d.date === date.toDateString());
+                    if (existingData) {
+                        sampleData.push(existingData);
+                    } else if (i === 0) {
+                        // 今日のデータ
+                        sampleData.push({
+                            date: date.toDateString(),
+                            swings: gameData.todayData.swings,
+                            steps: gameData.todayData.steps
+                        });
+                    } else {
+                        // 過去のランダムデータ
+                        sampleData.push({
+                            date: date.toDateString(),
+                            swings: Math.floor(Math.random() * 100) + 50,
+                            steps: Math.floor(Math.random() * 1000) + 500
+                        });
+                    }
+                }
+                recentData = sampleData;
+            }
+            
+            const maxSwings = Math.max(...recentData.map(d => d.swings)) || 100;
+            
+            // 棒グラフを生成
+            recentData.forEach(dayData => {
+                const barItem = document.createElement('div');
+                barItem.className = 'bar-item';
+                
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                const height = Math.max(10, (dayData.swings / maxSwings) * 200);
+                bar.style.height = height + 'px';
+                
+                const barValue = document.createElement('div');
+                barValue.className = 'bar-value';
+                barValue.textContent = dayData.swings;
+                bar.appendChild(barValue);
+                
+                const barLabel = document.createElement('div');
+                barLabel.className = 'bar-label';
+                const date = new Date(dayData.date);
+                barLabel.textContent = `${date.getMonth() + 1}/${date.getDate()}`;
+                
+                barItem.appendChild(bar);
+                barItem.appendChild(barLabel);
+                barChart.appendChild(barItem);
+            });
+            
+            modal.classList.add('show');
+        }
+        
+        // チャート非表示
+        function hideChart() {
+            const modal = document.getElementById('chartModal');
+            modal.classList.remove('show');
+        }
+        
+        // 保存インジケーター
+        function showSaveIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'save-indicator';
+            indicator.textContent = '💾 保存完了';
+            document.body.appendChild(indicator);
+            
+            setTimeout(() => {
+                if (indicator.parentNode) {
+                    indicator.parentNode.removeChild(indicator);
+                }
+            }, 2000);
+        }
+        
+        // データ保存・読み込み機能
         function saveGameData() {
             try {
                 const dataToSave = JSON.stringify(gameData);
-                
-                // 方法1: URLハッシュに保存（最も確実）
                 if (window.history && window.history.replaceState) {
                     try {
                         const currentUrl = window.location.href.split('#')[0];
                         window.history.replaceState(null, null, currentUrl + '#gamedata=' + encodeURIComponent(dataToSave));
                     } catch (e) {
-                        // history API が使えない場合は window.location.hash を使用
                         window.location.hash = 'gamedata=' + encodeURIComponent(dataToSave);
                     }
                 }
                 
-                // 方法2: HTMLの隠し要素に保存
                 let hiddenDataElement = document.getElementById('persistentGameData');
                 if (!hiddenDataElement) {
                     hiddenDataElement = document.createElement('script');
@@ -612,20 +1047,13 @@
                 }
                 hiddenDataElement.textContent = dataToSave;
                 
-                // 方法3: ページタイトルにバックアップデータを埋め込み
-                const originalTitle = document.title.split(' | ')[0];
-                document.title = originalTitle + ' | ' + btoa(dataToSave.substring(0, 100));
-                
-                // 方法4: Cookieも試行（HTTPSまたはローカルサーバーの場合）
                 try {
                     document.cookie = `koshienData=${encodeURIComponent(dataToSave)}; expires=${new Date(Date.now() + 365*24*60*60*1000).toUTCString()}; path=/; SameSite=Lax`;
                 } catch (cookieError) {
-                    console.log('Cookie保存は利用できません（ローカルファイルの場合は正常）');
+                    console.log('Cookie保存は利用できません');
                 }
                 
-                console.log('ゲームデータを保存しました（複数の方法で）');
                 showSaveIndicator();
-                
             } catch (error) {
                 console.error('データ保存エラー:', error);
             }
@@ -635,7 +1063,7 @@
             try {
                 let savedData = null;
                 
-                // 方法1: URLハッシュから読み込み（最優先）
+                // URLハッシュから読み込み
                 if (window.location.hash) {
                     const hash = window.location.hash.substring(1);
                     if (hash.startsWith('gamedata=')) {
@@ -647,7 +1075,7 @@
                     }
                 }
                 
-                // 方法2: HTMLの隠し要素から読み込み
+                // HTML要素から読み込み
                 if (!savedData) {
                     const hiddenElement = document.getElementById('persistentGameData');
                     if (hiddenElement && hiddenElement.textContent) {
@@ -655,7 +1083,7 @@
                     }
                 }
                 
-                // 方法3: Cookieから読み込み
+                // Cookieから読み込み
                 if (!savedData) {
                     try {
                         const cookies = document.cookie.split(';');
@@ -690,112 +1118,53 @@
             return false;
         }
         
-        // 保存インジケーター表示
-        function showSaveIndicator() {
-            // 既存のインジケーターを削除
-            const existing = document.querySelector('.save-indicator');
-            if (existing) existing.remove();
+        // 日付チェック機能
+        function checkNewDay() {
+            const today = new Date().toDateString();
             
-            const indicator = document.createElement('div');
-            indicator.className = 'save-indicator';
-            indicator.innerHTML = '💾 保存完了';
-            indicator.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #4CAF50;
-                color: white;
-                padding: 10px 15px;
-                border-radius: 5px;
-                font-size: 14px;
-                z-index: 1000;
-                animation: saveIndicatorAnim 2s ease-in-out;
-            `;
-            
-            // アニメーション定義
-            if (!document.querySelector('#saveIndicatorStyle')) {
-                const style = document.createElement('style');
-                style.id = 'saveIndicatorStyle';
-                style.textContent = `
-                    @keyframes saveIndicatorAnim {
-                        0% { opacity: 0; transform: translateY(-10px) scale(0.8); }
-                        20% { opacity: 1; transform: translateY(0) scale(1); }
-                        80% { opacity: 1; transform: translateY(0) scale(1); }
-                        100% { opacity: 0; transform: translateY(-10px) scale(0.8); }
+            if (gameData.lastDate !== today) {
+                if (gameData.lastDate && gameData.todayData.swings > 0) {
+                    gameData.dailyHistory.push({
+                        date: gameData.lastDate,
+                        swings: gameData.todayData.swings,
+                        steps: gameData.todayData.steps
+                    });
+                    
+                    if (gameData.dailyHistory.length > 30) {
+                        gameData.dailyHistory = gameData.dailyHistory.slice(-30);
                     }
-                `;
-                document.head.appendChild(style);
+                    
+                    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toDateString();
+                    if (gameData.lastDate === yesterday) {
+                        gameData.consecutiveDays++;
+                    } else {
+                        gameData.consecutiveDays = 1;
+                    }
+                } else if (gameData.lastDate && gameData.todayData.swings === 0) {
+                    gameData.consecutiveDays = 0;
+                }
+                
+                gameData.todayData = { swings: 0, steps: 0, distance: 0 };
+                gameData.swingInputCount = 0;
+                gameData.health = 3;
+                gameData.hasBoost = false;
+                gameData.lastDate = today;
+                
+                resetDailyUI();
             }
-            
-            document.body.appendChild(indicator);
-            
-            // 2秒後に削除
-            setTimeout(() => {
-                if (indicator.parentNode) {
-                    indicator.parentNode.removeChild(indicator);
-                }
-            }, 2000);
         }
         
-        // データのバックアップとエクスポート機能
-        function exportGameData() {
-            const dataToExport = JSON.stringify(gameData, null, 2);
-            const blob = new Blob([dataToExport], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'koshien-game-backup.json';
-            a.click();
-            URL.revokeObjectURL(url);
-            showAchievement('データをエクスポートしました！\nファイルを保存してください。');
-        }
-        
-        // データのインポート機能
-        function importGameData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    if (importedData && typeof importedData === 'object') {
-                        gameData = { ...gameData, ...importedData };
-                        saveGameData();
-                        updateDisplay();
-                        updateMap();
-                        drawChart();
-                        showAchievement('データをインポートしました！');
-                    }
-                } catch (error) {
-                    showAchievement('ファイルの読み込みに失敗しました。');
-                }
-            };
-            reader.readAsText(file);
+        // 日次UIリセット
+        function resetDailyUI() {
+            document.getElementById('boostIndicator').classList.remove('active');
+            document.getElementById('dashBtn').disabled = false;
+            document.getElementById('dashBtn').textContent = '🏃‍♂️ ダッシュ';
         }
         
         // 自動保存の設定
         function setupAutoSave() {
-            // ページ離脱前にデータ保存
-            window.addEventListener('beforeunload', function(e) {
-                saveGameData();
-            });
-            
-            // 定期的にデータ保存（30秒ごと）
-            setInterval(function() {
-                saveGameData();
-            }, 30 * 1000);
-            
-            // フォーカス変更時にも保存
-            window.addEventListener('blur', function() {
-                saveGameData();
-            });
-            
-            window.addEventListener('focus', function() {
-                saveGameData();
-            });
-            
-            // ページのvisibility変更時にも保存
+            setInterval(saveGameData, 30000);
+            window.addEventListener('beforeunload', saveGameData);
             document.addEventListener('visibilitychange', function() {
                 if (document.visibilityState === 'hidden') {
                     saveGameData();
@@ -803,382 +1172,29 @@
             });
         }
         
-        // 日付チェック機能
-        function checkNewDay() {
-            const today = new Date().toDateString();
-            
-            if (gameData.lastDate !== today) {
-                // 新しい日になった場合の処理
-                if (gameData.lastDate) {
-                    // 前日のデータを履歴に保存
-                    if (gameData.todayData.swings > 0) {
-                        gameData.history.push({
-                            date: gameData.lastDate,
-                            swings: gameData.todayData.swings,
-                            steps: gameData.todayData.steps,
-                            distance: gameData.todayData.distance
-                        });
-                        
-                        // 連続日数の更新
-                        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toDateString();
-                        if (gameData.lastDate === yesterday) {
-                            gameData.consecutiveDays++;
-                        } else {
-                            gameData.consecutiveDays = 1;
-                        }
-                    } else {
-                        // 練習しなかった場合は連続記録リセット
-                        gameData.consecutiveDays = 0;
-                    }
-                } else {
-                    // 初回起動の場合
-                    gameData.consecutiveDays = 0;
-                }
-                
-                // 今日のデータをリセット
-                gameData.todayData = { swings: 0, steps: 0, distance: 0 };
-                gameData.swingInputCount = 0;
-                gameData.health = 3;
-                gameData.hasBoost = false;
-                gameData.lastDate = today;
-                
-                // ボタンとブースト表示をリセット
-                resetDailyUI();
-            }
-        }
-        
-        // 日次UIリセット
-        function resetDailyUI() {
-            document.getElementById('boostDisplay').style.display = 'none';
-            document.getElementById('dashBtn').disabled = false;
-            document.getElementById('dashBtn').textContent = '実行';
-            document.getElementById('warningMessage').style.display = 'none';
-        }
-        
-        // 全データリセット
-        function resetAllData() {
-            if (confirm('本当に全てのデータをリセットしますか？\nこの操作は元に戻せません。')) {
-                gameData = {
-                    totalSteps: 0,
-                    totalSwings: 0,
-                    health: 3,
-                    hasBoost: false,
-                    swingInputCount: 0,
-                    lastDate: new Date().toDateString(),
-                    consecutiveDays: 0,
-                    todayData: { swings: 0, steps: 0, distance: 0 },
-                    history: []
-                };
-                
-                // 全ての保存場所をクリア
-                document.cookie = 'koshienData=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                const hiddenElement = document.getElementById('persistentGameData');
-                if (hiddenElement) hiddenElement.textContent = '';
-                
-                // URLハッシュもクリア
-                if (window.history && window.history.replaceState) {
-                    const currentUrl = window.location.href.split('#')[0];
-                    window.history.replaceState(null, null, currentUrl);
-                } else {
-                    window.location.hash = '';
-                }
-                
-                resetDailyUI();
-                updateDisplay();
-                updateMap();
-                drawChart();
-                saveGameData(); // リセット後にも保存
-                showAchievement('データをリセットしました！\n新しい旅を始めましょう！');
-            }
-        }
-        
-        // 日付表示
-        function updateDate() {
-            const today = new Date();
-            const options = { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                weekday: 'long'
-            };
-            document.getElementById('currentDate').textContent = today.toLocaleDateString('ja-JP', options);
-        }
-        
-        // 素振り実行
-        function addSwings() {
-            const swingCount = parseInt(document.getElementById('swingCount').value) || 0;
-            
-            if (swingCount <= 0) {
-                showAchievement("素振り回数を入力してください！");
-                return;
-            }
-            
-            if (gameData.swingInputCount >= 3) {
-                showAchievement("今日の素振り入力は3回まです！");
-                return;
-            }
-            
-            if (gameData.health <= 0) {
-                document.getElementById('warningMessage').style.display = 'block';
-                showAchievement("体力が不足しています！\n柔軟体操で回復してください。");
-                return;
-            }
-            
-            // 体力消費
-            gameData.health--;
-            gameData.swingInputCount++;
-            
-            // 歩数計算（ブースト効果適用）
-            const stepsPerSwing = gameData.hasBoost ? 15 : 10;
-            const stepsGained = swingCount * stepsPerSwing;
-            
-            // データ更新
-            gameData.totalSteps += stepsGained;
-            gameData.totalSwings += swingCount;
-            gameData.todayData.swings += swingCount;
-            gameData.todayData.steps += stepsGained;
-            gameData.todayData.distance = gameData.todayData.steps * STEP_DISTANCE_M / 1000;
-            
-            // 入力フィールドリセット
-            document.getElementById('swingCount').value = 0;
-            
-            // データ保存
-            saveGameData();
-            
-            // 表示更新
-            updateDisplay();
-            updateMap();
-            
-            // 成果表示
-            showAchievement(`素振り ${swingCount}回 完了！\n${stepsGained}歩前進しました！`);
-            
-            // マイルストーン達成チェック
-            checkMilestones();
-        }
-        
-        // ダッシュ実行
-        function performDash() {
-            if (gameData.hasBoost) {
-                showAchievement("今日はすでにダッシュ済みです！");
-                return;
-            }
-            
-            gameData.hasBoost = true;
-            document.getElementById('boostDisplay').style.display = 'block';
-            document.getElementById('dashBtn').disabled = true;
-            document.getElementById('dashBtn').textContent = '完了';
-            
-            // データ保存
-            saveGameData();
-            
-            showAchievement("ダッシュ完了！\n素振り効果がアップしました！\n（1回 = 15歩）");
-        }
-        
-        // 柔軟実行
-        function performFlexibility() {
-            if (gameData.health >= 3) {
-                showAchievement("体力は最大です！");
-                return;
-            }
-            
-            gameData.health = Math.min(3, gameData.health + 1);
-            document.getElementById('warningMessage').style.display = 'none';
-            
-            // データ保存
-            saveGameData();
-            
-            updateDisplay();
-            showAchievement("柔軟体操完了！\n体力が回復しました！");
-        }
-        
-        // 表示更新
-        function updateDisplay() {
-            // 基本情報
-            document.getElementById('totalSteps').textContent = gameData.totalSteps.toLocaleString();
-            document.getElementById('distanceTraveled').textContent = (gameData.totalSteps * STEP_DISTANCE_M / 1000).toFixed(1);
-            document.getElementById('stepsToGoal').textContent = Math.max(0, TOTAL_STEPS - gameData.totalSteps).toLocaleString();
-            document.getElementById('swingInputCount').textContent = gameData.swingInputCount;
-            
-            // 今日の記録
-            document.getElementById('todaySwings').textContent = gameData.todayData.swings;
-            document.getElementById('todaySteps').textContent = gameData.todayData.steps;
-            document.getElementById('todayDistance').textContent = gameData.todayData.distance.toFixed(1);
-            
-            // 体力表示
-            const hearts = document.querySelectorAll('.heart-icon');
-            hearts.forEach((heart, index) => {
-                if (index < gameData.health) {
-                    heart.className = 'heart-icon heart-full';
-                } else {
-                    heart.className = 'heart-icon heart-empty';
-                }
-            });
-            
-            // 次のマイルストーン
-            updateNextMilestone();
-            
-            // 素振りボタンの状態
-            const swingBtn = document.getElementById('addSwingBtn');
-            if (gameData.swingInputCount >= 3 || gameData.health <= 0) {
-                swingBtn.disabled = true;
-                if (gameData.swingInputCount >= 3) {
-                    swingBtn.textContent = '本日完了';
-                } else {
-                    swingBtn.textContent = '体力不足';
-                }
-            } else {
-                swingBtn.disabled = false;
-                swingBtn.textContent = '素振り実行';
-            }
-        }
-        
-        // 次のマイルストーン更新
-        function updateNextMilestone() {
-            const nextMilestone = milestones.find(m => m.steps > gameData.totalSteps);
-            if (nextMilestone) {
-                const stepsToNext = nextMilestone.steps - gameData.totalSteps;
-                document.getElementById('nextMilestone').textContent = nextMilestone.name + 'まで';
-                document.getElementById('stepsToNext').textContent = stepsToNext.toLocaleString() + '歩';
-            } else {
-                document.getElementById('nextMilestone').textContent = '目標達成！';
-                document.getElementById('stepsToNext').textContent = '🎉';
-            }
-        }
-        
-        // 地図更新
-        function updateMap() {
-            const progress = Math.min(100, (gameData.totalSteps / TOTAL_STEPS) * 100);
-            document.getElementById('currentPosition').style.left = progress + '%';
-        }
-        
-        // マイルストーン達成チェック
-        function checkMilestones() {
-            const justPassed = milestones.filter(m => 
-                m.steps <= gameData.totalSteps && 
-                m.steps > (gameData.totalSteps - gameData.todayData.steps)
-            );
-            
-            justPassed.forEach(milestone => {
-                setTimeout(() => {
-                    showAchievement(`🎯 マイルストーン達成！\n${milestone.name}に到達しました！`);
-                }, 1000);
-            });
-        }
-        
-        // 成果表示
-        function showAchievement(text) {
-            const popup = document.getElementById('achievementPopup');
-            document.getElementById('achievementText').textContent = text;
-            popup.classList.add('show');
-            
-            setTimeout(() => {
-                popup.classList.remove('show');
-            }, 3000);
-        }
-        
-        // チャート描画（実際のデータを使用）
-        function drawChart() {
-            const canvas = document.getElementById('progressChart');
-            const ctx = canvas.getContext('2d');
-            
-            // 背景クリア
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // 軸線描画
-            ctx.strokeStyle = '#ddd';
-            ctx.lineWidth = 1;
-            
-            // Y軸
-            ctx.beginPath();
-            ctx.moveTo(50, 20);
-            ctx.lineTo(50, 240);
-            ctx.stroke();
-            
-            // X軸
-            ctx.beginPath();
-            ctx.moveTo(50, 240);
-            ctx.lineTo(750, 240);
-            ctx.stroke();
-            
-            // ラベル
-            ctx.fillStyle = '#666';
-            ctx.font = '12px Arial';
-            ctx.fillText('日数', 720, 255);
-            ctx.save();
-            ctx.translate(20, 130);
-            ctx.rotate(-Math.PI/2);
-            ctx.fillText('累計歩数', 0, 0);
-            ctx.restore();
-            
-            // 実際のデータまたはサンプルデータを表示
-            let chartData = [];
-            if (gameData.history.length > 0) {
-                // 実際のデータを使用
-                let cumulativeSteps = 0;
-                chartData = gameData.history.map(day => {
-                    cumulativeSteps += day.steps;
-                    return cumulativeSteps;
-                });
-                // 今日のデータも追加
-                chartData.push(gameData.totalSteps);
-            } else {
-                // サンプルデータ
-                chartData = [0, gameData.totalSteps || 560, gameData.totalSteps + 560, gameData.totalSteps + 1120];
-            }
-            
-            if (chartData.length > 1) {
-                ctx.strokeStyle = '#1976D2';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                
-                const maxSteps = Math.max(...chartData, 5000);
-                chartData.forEach((steps, index) => {
-                    const x = 50 + (index * (700 / Math.max(chartData.length - 1, 1)));
-                    const y = 240 - (steps / maxSteps * 220);
-                    if (index === 0) {
-                        ctx.moveTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
-                    
-                    // データポイントを描画
-                    ctx.fillStyle = '#1976D2';
-                    ctx.beginPath();
-                    ctx.arc(x, y, 4, 0, 2 * Math.PI);
-                    ctx.fill();
-                });
-                ctx.stroke();
-            }
-        }
-        
         // 初期化
         function init() {
-            // 自動保存の設定
-            setupAutoSave();
-            
-            // データ読み込み
-            const dataLoaded = loadGameData();
-            
-            // 新しい日のチェック
+            loadGameData();
             checkNewDay();
+            setupAutoSave();
             
             updateDate();
             updateDisplay();
             updateMap();
-            drawChart();
             
-            // 初回起動の場合は日付を設定
+            if (gameData.hasBoost) {
+                document.getElementById('boostIndicator').classList.add('active');
+                document.getElementById('dashBtn').disabled = true;
+                document.getElementById('dashBtn').textContent = '✅ 完了';
+            }
+            
             if (!gameData.lastDate) {
                 gameData.lastDate = new Date().toDateString();
                 saveGameData();
             }
             
-            // データ読み込み成功時のメッセージ
-            if (dataLoaded) {
-                console.log('前回のデータを復元しました');
-            } else {
-                console.log('新しいゲームを開始します');
-            }
+            gameData.currentLevel = Math.floor(gameData.totalSteps / 1000) + 1;
+            updateDisplay();
         }
         
         // ページ読み込み時に初期化
