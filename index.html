@@ -744,6 +744,13 @@
             animation: saveSlideIn 2s ease-in-out;
         }
         
+        @keyframes saveSlideIn {
+            0% { opacity: 0; transform: translateX(100%); }
+            20% { opacity: 1; transform: translateX(0); }
+            80% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 0; transform: translateX(100%); }
+        }
+        
         /* PWA インストールバナー */
         .install-banner {
             position: fixed;
@@ -758,6 +765,7 @@
             transform: translateY(100%);
             transition: transform 0.3s ease;
             box-shadow: 0 -5px 15px rgba(0,0,0,0.2);
+            display: none;
         }
         
         .install-banner.show {
@@ -884,7 +892,7 @@
                 
                 <div class="status-row">
                     <div style="color: #666; font-size: 14px;">
-                        📅 <span id="currentDate">2025年8月10日</span>
+                        📅 <span id="currentDate">2025年8月13日</span>
                     </div>
                     <div style="display: flex; gap: 5px;">
                         <button class="chart-btn" onclick="showChart()">📊 グラフ</button>
@@ -986,6 +994,24 @@
         </div>
     </div>
     
+    <!-- PWAインストールバナー -->
+    <div class="install-banner" id="installBanner">
+        <div class="install-banner-content">
+            <div class="install-banner-text">
+                📱 ホーム画面に追加してアプリのように使えます！
+            </div>
+            <div class="install-banner-buttons">
+                <button class="install-btn" id="installBtn">インストール</button>
+                <button class="install-btn dismiss-btn" id="dismissBtn">後で</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- オフライン通知 -->
+    <div class="offline-notice" id="offlineNotice">
+        📶 オフラインモードです
+    </div>
+    
     <script>
         // ゲームデータ
         let gameData = {
@@ -1023,11 +1049,17 @@
             { name: "甲子園球場", steps: TOTAL_STEPS }
         ];
         
-        // 日付表示
+        // 現在の日付を取得して表示
         function updateDate() {
             const today = new Date();
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('currentDate').textContent = today.toLocaleDateString('ja-JP', options);
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                weekday: 'short'
+            };
+            const dateString = today.toLocaleDateString('ja-JP', options);
+            document.getElementById('currentDate').textContent = dateString;
         }
         
         // カウント変更
@@ -1102,7 +1134,7 @@
                 return;
             }
             
-            gameData.health = Math.min(3, gameData.health + 1); // 1回で1ハート回復
+            gameData.health = Math.min(3, gameData.health + 1);
             updateDisplay();
             saveGameData();
             showAchievement("柔軟体操完了！\n体力が1回復しました！");
@@ -1171,6 +1203,16 @@
         function updateMap() {
             const progress = Math.min(100, (gameData.totalSteps / TOTAL_STEPS) * 100);
             document.getElementById('playerIcon').style.left = Math.max(5, progress) + '%';
+            
+            // マイルストーンの達成状況を更新
+            const milestonePoints = document.querySelectorAll('.milestone-point');
+            milestonePoints.forEach((point, index) => {
+                if (index < milestones.length && gameData.totalSteps >= milestones[index].steps) {
+                    point.classList.add('milestone-passed');
+                } else {
+                    point.classList.remove('milestone-passed');
+                }
+            });
         }
         
         // レベルアップチェック
@@ -1241,7 +1283,7 @@
         
         // 線グラフ作成
         function createLineChart(container, data) {
-            const maxSwings = Math.max(...data.map(d => d.swings), 50); // 最小50で正規化
+            const maxSwings = Math.max(...data.map(d => d.swings), 50);
             const width = 300;
             const height = 210;
             const padding = 40;
@@ -1294,7 +1336,6 @@
                 
                 // ツールチップ効果
                 circle.addEventListener('mouseenter', function() {
-                    // 値ラベルを表示
                     const valueLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                     valueLabel.setAttribute('class', 'chart-value-label');
                     valueLabel.setAttribute('id', 'temp-label');
@@ -1370,16 +1411,12 @@
                 dailyHistory: []
             };
             
-            // 保存データを完全クリア
-            if (window.history && window.history.replaceState) {
-                const currentUrl = window.location.href.split('#')[0];
-                window.history.replaceState(null, null, currentUrl);
+            // LocalStorageからデータを削除
+            try {
+                localStorage.removeItem('koshienGameData');
+            } catch (e) {
+                console.log('LocalStorage削除をスキップ');
             }
-            
-            const hiddenElement = document.getElementById('persistentGameData');
-            if (hiddenElement) hiddenElement.textContent = '';
-            
-            document.cookie = 'koshienData=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
             
             // UIをリセット
             resetDailyUI();
@@ -1412,105 +1449,69 @@
             }, 2000);
         }
         
-        // データ保存・読み込み機能
+        // データ保存（LocalStorageを使用）
         function saveGameData() {
             try {
                 const dataToSave = JSON.stringify(gameData);
-                if (window.history && window.history.replaceState) {
-                    try {
-                        const currentUrl = window.location.href.split('#')[0];
-                        window.history.replaceState(null, null, currentUrl + '#gamedata=' + encodeURIComponent(dataToSave));
-                    } catch (e) {
-                        window.location.hash = 'gamedata=' + encodeURIComponent(dataToSave);
-                    }
-                }
-                
-                let hiddenDataElement = document.getElementById('persistentGameData');
-                if (!hiddenDataElement) {
-                    hiddenDataElement = document.createElement('script');
-                    hiddenDataElement.id = 'persistentGameData';
-                    hiddenDataElement.type = 'application/json';
-                    hiddenDataElement.style.display = 'none';
-                    document.head.appendChild(hiddenDataElement);
-                }
-                hiddenDataElement.textContent = dataToSave;
-                
-                try {
-                    document.cookie = `koshienData=${encodeURIComponent(dataToSave)}; expires=${new Date(Date.now() + 365*24*60*60*1000).toUTCString()}; path=/; SameSite=Lax`;
-                } catch (cookieError) {
-                    console.log('Cookie保存は利用できません');
-                }
-                
+                localStorage.setItem('koshienGameData', dataToSave);
                 showSaveIndicator();
+                console.log('データを保存しました');
             } catch (error) {
                 console.error('データ保存エラー:', error);
+                // LocalStorageが使えない場合のフォールバック
+                try {
+                    // メタタグを使った保存（制限的だが何もないよりまし）
+                    let metaData = document.querySelector('meta[name="game-data"]');
+                    if (!metaData) {
+                        metaData = document.createElement('meta');
+                        metaData.name = 'game-data';
+                        document.head.appendChild(metaData);
+                    }
+                    metaData.content = JSON.stringify(gameData);
+                } catch (fallbackError) {
+                    console.error('フォールバック保存も失敗:', fallbackError);
+                }
             }
         }
         
+        // データ読み込み（LocalStorageから）
         function loadGameData() {
             try {
-                let savedData = null;
-                
-                // URLハッシュから読み込み
-                if (window.location.hash) {
-                    const hash = window.location.hash.substring(1);
-                    if (hash.startsWith('gamedata=')) {
-                        try {
-                            savedData = decodeURIComponent(hash.substring(9));
-                        } catch (e) {
-                            console.log('URLハッシュの解析に失敗');
-                        }
-                    }
-                }
-                
-                // HTML要素から読み込み
-                if (!savedData) {
-                    const hiddenElement = document.getElementById('persistentGameData');
-                    if (hiddenElement && hiddenElement.textContent) {
-                        savedData = hiddenElement.textContent;
-                    }
-                }
-                
-                // Cookieから読み込み
-                if (!savedData) {
-                    try {
-                        const cookies = document.cookie.split(';');
-                        for (let cookie of cookies) {
-                            const [name, value] = cookie.trim().split('=');
-                            if (name === 'koshienData') {
-                                savedData = decodeURIComponent(value);
-                                break;
-                            }
-                        }
-                    } catch (cookieError) {
-                        console.log('Cookie読み込みスキップ');
-                    }
-                }
-                
+                const savedData = localStorage.getItem('koshienGameData');
                 if (savedData) {
-                    try {
-                        const loadedData = JSON.parse(savedData);
-                        if (loadedData && typeof loadedData === 'object') {
-                            gameData = { ...gameData, ...loadedData };
-                            console.log('ゲームデータを復元しました');
-                            return true;
-                        }
-                    } catch (parseError) {
-                        console.error('データの解析に失敗:', parseError);
+                    const loadedData = JSON.parse(savedData);
+                    if (loadedData && typeof loadedData === 'object') {
+                        gameData = { ...gameData, ...loadedData };
+                        console.log('ゲームデータを復元しました');
+                        return true;
                     }
                 }
-                
             } catch (error) {
                 console.error('データ読み込みエラー:', error);
+                // フォールバックでメタタグから読み込み
+                try {
+                    const metaData = document.querySelector('meta[name="game-data"]');
+                    if (metaData && metaData.content) {
+                        const loadedData = JSON.parse(metaData.content);
+                        if (loadedData && typeof loadedData === 'object') {
+                            gameData = { ...gameData, ...loadedData };
+                            console.log('フォールバックからデータを復元しました');
+                            return true;
+                        }
+                    }
+                } catch (fallbackError) {
+                    console.error('フォールバック読み込みも失敗:', fallbackError);
+                }
             }
             return false;
         }
         
-        // 日付チェック機能
+        // 日付チェック機能（修正版）
         function checkNewDay() {
             const today = new Date().toDateString();
             
             if (gameData.lastDate !== today) {
+                // 前日のデータがある場合は履歴に保存
                 if (gameData.lastDate && gameData.todayData.swings > 0) {
                     gameData.dailyHistory.push({
                         date: gameData.lastDate,
@@ -1518,27 +1519,37 @@
                         steps: gameData.todayData.steps
                     });
                     
+                    // 履歴は30日分まで保持
                     if (gameData.dailyHistory.length > 30) {
                         gameData.dailyHistory = gameData.dailyHistory.slice(-30);
                     }
                     
+                    // 連続日数の計算
                     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toDateString();
-                    if (gameData.lastDate === yesterday) {
+                    if (gameData.lastDate === yesterday && gameData.todayData.swings > 0) {
                         gameData.consecutiveDays++;
                     } else {
-                        gameData.consecutiveDays = 1;
+                        gameData.consecutiveDays = gameData.todayData.swings > 0 ? 1 : 0;
                     }
-                } else if (gameData.lastDate && gameData.todayData.swings === 0) {
+                } else if (!gameData.lastDate) {
+                    // 初回起動時
+                    gameData.consecutiveDays = 0;
+                } else {
+                    // 前日に練習していない場合
                     gameData.consecutiveDays = 0;
                 }
                 
+                // 今日のデータをリセット
                 gameData.todayData = { swings: 0, steps: 0, distance: 0 };
                 gameData.swingInputCount = 0;
                 gameData.health = 3;
                 gameData.hasBoost = false;
                 gameData.lastDate = today;
                 
+                // UIもリセット
                 resetDailyUI();
+                
+                console.log('新しい日になりました:', today);
             }
         }
         
@@ -1551,8 +1562,13 @@
         
         // 自動保存の設定
         function setupAutoSave() {
+            // 30秒ごとに自動保存
             setInterval(saveGameData, 30000);
+            
+            // ページを離れる時に保存
             window.addEventListener('beforeunload', saveGameData);
+            
+            // タブが非アクティブになった時に保存
             document.addEventListener('visibilitychange', function() {
                 if (document.visibilityState === 'hidden') {
                     saveGameData();
@@ -1593,6 +1609,7 @@
             }
             
             const banner = document.getElementById('installBanner');
+            banner.style.display = 'block';
             setTimeout(() => {
                 banner.classList.add('show');
             }, 3000); // 3秒後に表示
@@ -1612,7 +1629,11 @@
         // 後でボタンクリック
         document.getElementById('dismissBtn').addEventListener('click', () => {
             hideInstallBanner();
-            localStorage.setItem('install-banner-dismissed', 'true');
+            try {
+                localStorage.setItem('install-banner-dismissed', 'true');
+            } catch (e) {
+                console.log('インストールバナー非表示設定の保存をスキップ');
+            }
         });
         
         // インストールバナー非表示
@@ -1642,36 +1663,71 @@
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
         
-        // 初期化処理を更新
+        // 初期化処理
         function init() {
+            console.log('アプリを初期化中...');
+            
             // オンライン状態チェック
             updateOnlineStatus();
             
-            loadGameData();
+            // データ読み込み
+            const dataLoaded = loadGameData();
+            console.log('データ読み込み結果:', dataLoaded);
+            
+            // 新しい日かチェック
             checkNewDay();
+            
+            // 自動保存設定
             setupAutoSave();
             
+            // 日付表示を更新（現在の日付）
             updateDate();
+            
+            // 表示更新
             updateDisplay();
             updateMap();
             
+            // ブースト状態の復元
             if (gameData.hasBoost) {
                 document.getElementById('boostIndicator').classList.add('active');
                 document.getElementById('dashBtn').disabled = true;
                 document.getElementById('dashBtn').textContent = '✅ 完了';
             }
             
+            // 初回起動時の日付設定
             if (!gameData.lastDate) {
                 gameData.lastDate = new Date().toDateString();
                 saveGameData();
+                console.log('初回起動: 日付を設定しました');
             }
             
+            // レベル再計算
             gameData.currentLevel = Math.floor(gameData.totalSteps / 1000) + 1;
             updateDisplay();
+            
+            console.log('初期化完了');
+            console.log('現在のゲームデータ:', gameData);
         }
         
         // ページ読み込み時に初期化
         window.addEventListener('load', init);
+        
+        // ページの可視性が変更された時（タブ切り替えなど）
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                // ページが再び表示された時、日付をチェック
+                checkNewDay();
+                updateDate();
+                updateDisplay();
+            }
+        });
+        
+        // フォーカスが戻った時も日付をチェック
+        window.addEventListener('focus', function() {
+            checkNewDay();
+            updateDate();
+            updateDisplay();
+        });
     </script>
 </body>
 </html>
